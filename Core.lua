@@ -77,6 +77,8 @@ function x:OnEnable()
     self:RegisterEvent("ACTIONBAR_SLOT_CHANGED", "updateEverything")
     self:RegisterEvent("ACTIONBAR_SHOWGRID", "updateEverything")
     self:RegisterEvent("ACTIONBAR_HIDEGRID", "updateEverything")
+    self:RegisterEvent("PLAYER_TALENT_UPDATE", "updateEverything")
+    self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", "updateEverything")
 end
 
 
