@@ -1,7 +1,7 @@
 -- Get Addon's name and Blizzard's Addon Stub
 local AddonName, addon = ...
 
--- See https://wowpedia.fandom.com/wiki/Ace3_for_Dummies
+-- https://wowpedia.fandom.com/wiki/Ace3_for_Dummies
 addon.engine = LibStub("AceAddon-3.0"):NewAddon(AddonName, "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0")
 
 -- Local handle to the Engine
@@ -61,6 +61,7 @@ function x:OnInitialize()
 
     self:RegisterChatCommand('rabg', 'SlashCommand')
 
+    self.debug = false
     self.activeGlows = {}
 end
 
@@ -74,7 +75,7 @@ function x:OnEnable()
     self:updateEverything()
 
     -- https://www.wowace.com/projects/ace3/pages/api/ace-timer-3-0
-    self:ScheduleRepeatingTimer("checkCooldowns", 1) -- TODO revert back to 0.1
+    self:ScheduleRepeatingTimer("checkCooldowns", 0.1)
 end
 
 
@@ -88,23 +89,27 @@ function x:checkCooldowns()
 
         for _, button in pairs(buttons) do
             if isOnCooldown and self.activeGlows[button:GetName()] then
-                self:Print(
-                    GetSpellLink(spellId),
-                    'is now on CD and',
-                    button:GetName(),
-                    'should stop glowing.'
-                )
+                if self.debug then
+                    self:Print(
+                        GetSpellLink(spellId),
+                        'is now on CD and',
+                        button:GetName(),
+                        'should stop glowing.'
+                    )
+                end
                 self:HideGlow(button)
                 self.activeGlows[button:GetName()] = nil
             end
 
             if not isOnCooldown and not self.activeGlows[button:GetName()] then
-                self:Print(
-                    GetSpellLink(spellId),
-                    'isnt on CD anymore and',
-                    button:GetName(),
-                    'should start glowing.'
-                )
+                if self.debug then
+                    self:Print(
+                        GetSpellLink(spellId),
+                        'isnt on CD anymore and',
+                        button:GetName(),
+                        'should start glowing.'
+                    )
+                end
                 self:ShowGlow(button)
                 self.activeGlows[button:GetName()] = button
             end
@@ -118,7 +123,9 @@ function x:analyseButton(button)
         return
     end
 
-    -- test if button is visible
+    if not button:IsVisible() then
+        return
+    end
 
     local slot = button:CalculateAction()
     if slot and HasAction(slot) then
@@ -245,6 +252,8 @@ function x:SlashCommand(msg)
         x:updateEverything()
     elseif msg == 'show' then
         x:ShowButtonSpells()
+    elseif msg == 'debug' then
+        self.debug = not self.debug
     end
 end
 
