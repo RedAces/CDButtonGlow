@@ -50,7 +50,9 @@ function x:OnEnable()
         self.tooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
     end
 
-  x:updateButtonSpells()
+    self:updateButtonSpells()
+    self:RegisterEvent("UNIT_SPELLCAST_SENT", "OnSpellCastSent")
+    self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", "OnSpellCastSucceeded")
 end
 
 function x:analyseButton(button)
@@ -187,5 +189,42 @@ function x:SetCooldownMinimum(info, value)
     self.db.profile.cooldownMinimum = value
 end
 
+function x:OnSpellCastSent(eventName, unit, target, castGUID, spellId)
+    -- https://wowpedia.fandom.com/wiki/UNIT_SPELLCAST_SENT
+    if unit == "player" then
+        self.currentCastGUID = castGUID
+    end
+end
 
---local start, duration, enabled = GetSpellCooldown(spellID, "bookType");
+function x:OnSpellCastSucceeded(eventName, unitTarget, castGUID, spellId)
+    -- https://wowpedia.fandom.com/wiki/UNIT_SPELLCAST_SUCCEEDED
+    if self.currentCastGUID == castGUID then
+        self.currentCastGUID = nil
+
+        if self.buttonSpellIds[spellId] and self.spellCooldowns[spellId] and self.spellCooldowns[spellId] >= self:GetCooldownMinimum() then
+            local currentCharges = GetSpellCharges(spellId)
+
+            if currentCharges == 1 or currentCharges == nil then
+                -- IDK why but Blood Boil has "1 charges" when none were available
+                for _, button in pairs(self.buttonSpellIds[spellId]) do
+                    print(
+                        button:GetName(),
+                        GetSpellLink(spellId),
+                        " should stop glowing."
+                    )
+                    _G["WeakAuras"].HideOverlayGlow(button)
+                end
+            else
+                for _, button in pairs(self.buttonSpellIds[spellId]) do
+                    print(
+                        button:GetName(),
+                        GetSpellLink(spellId),
+                        " should still be glowing, because it has ",
+                        currentCharges - 1,
+                        " charges."
+                    )
+                end
+            end
+        end
+    end
+end
