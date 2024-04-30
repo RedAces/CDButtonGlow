@@ -4,8 +4,11 @@ local AddonName, addon = ...
 -- See https://wowpedia.fandom.com/wiki/Ace3_for_Dummies
 addon.engine = LibStub("AceAddon-3.0"):NewAddon(AddonName, "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0")
 
--- Local Handle to the Engine
+-- Local handle to the Engine
 local x = addon.engine
+
+-- Local handle to Libs
+local LCG = LibStub("LibCustomGlow-1.0")
 
 function x:OnInitialize()
     local dbDefaults = {
@@ -55,15 +58,16 @@ function x:OnEnable()
 
     self:updateEverything()
 
+    -- https://www.wowace.com/projects/ace3/pages/api/ace-timer-3-0
     self:ScheduleRepeatingTimer("checkCooldowns", 1) -- TODO revert back to 0.1
 end
 
 
 function x:checkCooldowns()
     for spellId, buttons in pairs(self.buttonSpellIds) do
-        local start = GetSpellCooldown(spellId)
+        local start = GetSpellCooldown(spellId) or 0
 
-        local isOnCooldown = start ~= nil and start > 0
+        local isOnCooldown = start > 0
 
         -- TODO was ist mit charges?
 
@@ -75,7 +79,7 @@ function x:checkCooldowns()
                     button:GetName(),
                     'should stop glowing.'
                 )
-                _G["WeakAuras"].HideOverlayGlow(button)
+                self:HideGlow(button)
                 self.activeGlows[button:GetName()] = nil
             end
 
@@ -86,7 +90,7 @@ function x:checkCooldowns()
                     button:GetName(),
                     'should start glowing.'
                 )
-                _G["WeakAuras"].ShowOverlayGlow(button)
+                self:ShowGlow(button)
                 self.activeGlows[button:GetName()] = 1
             end
         end
@@ -95,6 +99,13 @@ end
 
 
 function x:analyseButton(button)
+    if not button then
+        return
+    end
+
+    -- test if button is visible
+    -- test if spell is learned
+
     local slot = button:CalculateAction()
     if slot and HasAction(slot) then
         local spellId = 0
@@ -122,26 +133,17 @@ function x:updateEverything()
 
     if _G.Bartender4 then
         for i = 1, 120 do
-            local button = _G["BT4Button"..i]
-            if button then
-                self:analyseButton(button)
-            end
+            self:analyseButton(_G["BT4Button"..i])
         end
     elseif _G.ElvUI then
         for barNum = 1, 10 do
             for buttonNum = 1, 12 do
-                local button = _G["ElvUI_Bar" .. barNum .. "Button" .. buttonNum]
-                if button then
-                    self:analyseButton(button)
-                end
+                self:analyseButton(_G["ElvUI_Bar" .. barNum .. "Button" .. buttonNum])
             end
         end
     elseif _G.Dominos then
         for i = 1, 168 do
-            local button = _G["DominosActionButton" .. i]
-            if button then
-                self:analyseButton(button)
-            end
+            self:analyseButton(_G["DominosActionButton" .. i])
         end
     else
         local actionBars = {
@@ -156,10 +158,7 @@ function x:updateEverything()
         }
         for _, barName in pairs(actionBars) do
             for i = 1, 12 do
-                local button = _G[barName .. "Button" .. i]
-                if button then
-                    self:analyseButton(button)
-                end
+                self:analyseButton(_G[barName .. "Button" .. i])
             end
         end
     end
@@ -234,4 +233,14 @@ end
 function x:SetCooldownMinimum(info, value)
     self.db.profile.cooldownMinimum = value
     self:updateEverything()
+end
+
+
+function x:ShowGlow(button)
+    LCG.PixelGlow_Start(button)
+end
+
+
+function x:HideGlow(button)
+    LCG.PixelGlow_Stop(button)
 end
