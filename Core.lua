@@ -13,11 +13,13 @@ local LCG = LibStub("LibCustomGlow-1.0")
 function x:OnInitialize()
     local dbDefaults = {
         profile = {
-            cooldownMinimum = 30
+            cooldownMinimum = 30,
+            glowType = "pixel"
         }
     }
     self.db = LibStub("AceDB-3.0"):New("RAButtonGlowDB", dbDefaults, true)
 
+    -- https://www.wowace.com/projects/ace3/pages/ace-config-3-0-options-tables
     local options = {
         name = AddonName,
         handler = x,
@@ -33,6 +35,19 @@ function x:OnInitialize()
                 bigStep = 30,
                 get = "GetCooldownMinimum",
                 set = "SetCooldownMinimum",
+            },
+            glowType = {
+                type = "select",
+                name = "Type of action bar glow",
+                desc = "Which type of glow do you want?",
+                values = {
+                    autocast = "Auto Cast Shine",
+                    pixel = "Pixel Glow",
+                    procc = "Proc Glow",
+                    blizz = "Action Button Glow"
+                },
+                get = "GetGlowType",
+                set = "SetGlowType",
             },
         },
     }
@@ -91,7 +106,7 @@ function x:checkCooldowns()
                     'should start glowing.'
                 )
                 self:ShowGlow(button)
-                self.activeGlows[button:GetName()] = 1
+                self.activeGlows[button:GetName()] = button
             end
         end
     end
@@ -128,6 +143,11 @@ end
 
 
 function x:updateEverything()
+    for _, button in pairs(self.activeGlows) do
+        self:HideGlow(button)
+    end
+
+    self.activeGlows    = {}
     self.buttonSpellIds = {}
     self.spellCooldowns = {}
 
@@ -236,11 +256,73 @@ function x:SetCooldownMinimum(info, value)
 end
 
 
+function x:GetGlowType(info)
+    return self.db.profile.glowType
+end
+
+
+function x:SetGlowType(info, value)
+    for _, button in pairs(self.activeGlows) do
+        self:HideGlow(button)
+    end
+
+    self.db.profile.glowType = value
+
+    for _, button in pairs(self.activeGlows) do
+        self:ShowGlow(button)
+    end
+end
+
+
 function x:ShowGlow(button)
-    LCG.PixelGlow_Start(button)
+    local glowType = self:GetGlowType()
+    if glowType == "pixel" then
+        LCG.PixelGlow_Start(
+            button,
+            nil,
+            nil,
+            nil,
+            nil,
+            nil,
+            nil,
+            nil,
+            nil,
+            AddonName .. '_glow'
+        )
+    elseif glowType == "procc" then
+        LCG.ProcGlow_Start(button)
+    elseif glowType == "autocast" then
+        LCG.AutoCastGlow_Start(
+            button,
+            nil,
+            nil,
+            nil,
+            nil,
+            nil,
+            nil,
+            AddonName .. '_glow'
+        )
+    elseif glowType == "blizz" then
+        LCG.ButtonGlow_Start(button)
+    end
 end
 
 
 function x:HideGlow(button)
-    LCG.PixelGlow_Stop(button)
+    local glowType = self:GetGlowType()
+    if glowType == "pixel" then
+        LCG.PixelGlow_Stop(
+            button,
+            AddonName .. '_glow'
+        )
+    elseif glowType == "procc" then
+        LCG.ProcGlow_Stop(button)
+    elseif glowType == "autocast" then
+        LCG.AutoCastGlow_Stop(
+            button,
+            AddonName .. '_glow'
+        )
+    elseif glowType == "blizz" then
+        LCG.ButtonGlow_Stop(button)
+    end
 end
