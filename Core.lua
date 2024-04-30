@@ -45,6 +45,11 @@ function x:OnInitialize()
 end
 
 function x:OnEnable()
+    if not self.tooltip then
+        self.tooltip = CreateFrame("GameTooltip", "RAButtonGlowScanTooltip", UIParent, "GameTooltipTemplate")
+        self.tooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
+    end
+
   x:updateButtonSpells()
 end
 
@@ -62,12 +67,15 @@ function x:analyseButton(button)
         if spellId and spellId ~= 0 then
             self.buttonSpellIds[spellId] = self.buttonSpellIds[spellId] or {}
             table.insert(self.buttonSpellIds[spellId], button)
+
+            self:GetSpellCooldown(spellId)
         end
     end
 end
 
 function x:updateButtonSpells()
     self.buttonSpellIds = {}
+    self.spellCooldowns = {}
 
     if _G.Bartender4 then
         for i = 1, 120 do
@@ -114,10 +122,51 @@ function x:updateButtonSpells()
     end
 end
 
+function x:GetSpellCooldown(spellId)
+    if not self.spellCooldowns[spellId] then
+        self.tooltip:ClearLines()
+        self.tooltip:SetSpellByID(spellId)
+
+        for line = 1, self.tooltip:NumLines() do
+            local tooltipTextObject = _G[self.tooltip:GetName() .. "TextRight" .. line]
+            local cooldownText = tooltipTextObject:GetText()
+
+            if cooldownText then
+                local matches = cooldownText:match('([0-9.]+) min cooldown')
+                if matches then
+                    self.spellCooldowns[spellId] = tonumber(matches) * 60
+                    return self.spellCooldowns[spellId]
+                end
+
+                matches = cooldownText:match('([0-9.]+) sec cooldown')
+                if matches then
+                    self.spellCooldowns[spellId] = tonumber(matches)
+                    return self.spellCooldowns[spellId]
+                end
+
+                matches = cooldownText:match('([0-9.]+) sec recharge')
+                if matches then
+                    self.spellCooldowns[spellId] = tonumber(matches)
+                    return self.spellCooldowns[spellId]
+                end
+            end
+        end
+    end
+
+    return self.spellCooldowns[spellId]
+end
+
 function x:ShowButtonSpells()
     for spellId, buttons in pairs(self.buttonSpellIds) do
         for _, button in pairs(buttons) do
-            print(GetSpellLink(spellId), ': ', button:GetName())
+            print(
+                GetSpellLink(spellId),
+                ': ',
+                button:GetName(),
+                ' ',
+                self.spellCooldowns[spellId] or 'no',
+                ' CD'
+            )
         end
     end
 end
@@ -137,3 +186,6 @@ end
 function x:SetCooldownMinimum(info, value)
     self.db.profile.cooldownMinimum = value
 end
+
+
+--local start, duration, enabled = GetSpellCooldown(spellID, "bookType");
