@@ -234,6 +234,12 @@ function x:ParseSpellCooldown(spellId)
                     return self.spellCooldowns[spellId]
                 end
 
+                matches = cooldownText:match('([0-9.]+) min recharge')
+                if matches then
+                    self.spellCooldowns[spellId] = tonumber(matches) * 60
+                    return self.spellCooldowns[spellId]
+                end
+
                 matches = cooldownText:match('([0-9.]+) sec recharge')
                 if matches then
                     self.spellCooldowns[spellId] = tonumber(matches)
