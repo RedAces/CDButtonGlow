@@ -131,9 +131,9 @@ function x:analyseButton(button)
     local slot = button:CalculateAction()
     if slot and HasAction(slot) then
         local spellId = 0
-        local actionType, id = GetActionInfo(slot)
-        if actionType == "macro" then
-            spellId = GetMacroSpell(id)
+        local actionType, id, subType = GetActionInfo(slot)
+        if actionType == "macro" and subType == "spell" then
+            spellId = id
         elseif actionType == "spell" then
             spellId = id
         end
