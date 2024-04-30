@@ -43,8 +43,7 @@ function x:OnInitialize()
 
     self:RegisterChatCommand('rabg', 'SlashCommand')
 
-    self.spellsOnCooldown = {}
-    self.spellsNotOnCooldown = {}
+    self.activeGlows = {}
 end
 
 
@@ -56,37 +55,40 @@ function x:OnEnable()
 
     self:updateEverything()
 
-    self:RegisterEvent("UNIT_SPELLCAST_SENT", "OnSpellCastSent")
-    self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", "OnSpellCastSucceeded")
-
     self:ScheduleRepeatingTimer("checkCooldowns", 1) -- TODO revert back to 1
 end
 
 
 function x:checkCooldowns()
-    self:Print(
-        "Checking ",
-        #self.spellsOnCooldown,
-        " spells on cooldown..."
-    )
-
-    for spellId in pairs(self.spellsOnCooldown) do
+    for spellId, buttons in pairs(self.buttonSpellIds) do
         local start = GetSpellCooldown(spellId, BOOKTYPE_SPELL)
+
+        local isOnCooldown = start ~= nil and start > 0
 
         -- TODO was ist mit charges?
 
-        if start ~= nil or start == 0 then
-            self:Print(
-                GetSpellLink(spellId),
-                '  isnt on CD anymore.'
-            )
-
-            for _, button in pairs(self.buttonSpellIds[spellId]) do
-                _G["WeakAuras"].ShowOverlayGlow(button)
+        for _, button in pairs(buttons) do
+            if isOnCooldown and self.activeGlows[button:GetName()] ~= nil then
+                self:Print(
+                    GetSpellLink(spellId),
+                    'is now on CD and',
+                    button:GetName(),
+                    'should stop glowing.'
+                )
+                _G["WeakAuras"].HideOverlayGlow(button)
+                self.activeGlows[button:GetName()] = nil
             end
 
-            self.spellsOnCooldown[spellId] = nil
-            self.spellsNotOnCooldown[spellId] = 1
+            if isOnCooldown == false and self.activeGlows[button:GetName()] == nil then
+                self:Print(
+                    GetSpellLink(spellId),
+                    'isnt on CD anymore and',
+                    button:GetName(),
+                    'should start glowing.'
+                )
+                _G["WeakAuras"].ShowOverlayGlow(button)
+                self.activeGlows[button:GetName()] = 1
+            end
         end
     end
 end
@@ -108,12 +110,6 @@ function x:analyseButton(button)
             if cooldown ~= nil and cooldown >= self:GetCooldownMinimum() then
                 self.buttonSpellIds[spellId] = self.buttonSpellIds[spellId] or {}
                 table.insert(self.buttonSpellIds[spellId], button)
-
-                if self.spellsNotOnCooldown[spellId] == nil then
-                    -- We're setting the spell "on cooldown" because then the checkCooldowns() will check it.
-                    self.spellsOnCooldown[spellId] = 1
-                    self.spellsNotOnCooldown[spellId] = nil
-                end
             end
         end
     end
@@ -218,20 +214,6 @@ function x:ShowButtonSpells()
             )
         end
     end
-
-    for spellId in pairs(self.spellsOnCooldown) do
-        self:Print(
-            GetSpellLink(spellId),
-            ' is on cooldown.'
-        )
-    end
-
-    for spellId in pairs(self.spellsNotOnCooldown) do
-        self:Print(
-            GetSpellLink(spellId),
-            ' is not on cooldown.'
-        )
-    end
 end
 
 
@@ -252,48 +234,4 @@ end
 function x:SetCooldownMinimum(info, value)
     self.db.profile.cooldownMinimum = value
     self:updateEverything()
-end
-
-function x:OnSpellCastSent(eventName, unit, target, castGUID, spellId)
-    -- https://wowpedia.fandom.com/wiki/UNIT_SPELLCAST_SENT
-    if unit == "player" then
-        self.currentCastGUID = castGUID
-    end
-end
-
-
-function x:OnSpellCastSucceeded(eventName, unitTarget, castGUID, spellId)
-    -- https://wowpedia.fandom.com/wiki/UNIT_SPELLCAST_SUCCEEDED
-    if self.currentCastGUID == castGUID then
-        self.currentCastGUID = nil
-
-        if self.buttonSpellIds[spellId] and self.spellCooldowns[spellId] and self.spellCooldowns[spellId] >= self:GetCooldownMinimum() then
-            local currentCharges = GetSpellCharges(spellId)
-
-            if currentCharges == 1 or currentCharges == nil then
-                -- IDK why but Blood Boil has "currentCharges == 1" when none were available
-                for _, button in pairs(self.buttonSpellIds[spellId]) do
-                    self:Print(
-                        button:GetName(),
-                        GetSpellLink(spellId),
-                        " should stop glowing."
-                    )
-                    _G["WeakAuras"].HideOverlayGlow(button)
-                end
-
-                self.spellsOnCooldown[spellId] = 1
-                self.spellsNotOnCooldown[spellId] = nil
-            else
-                for _, button in pairs(self.buttonSpellIds[spellId]) do
-                    self:Print(
-                        button:GetName(),
-                        GetSpellLink(spellId),
-                        " should still be glowing, because it has ",
-                        currentCharges - 1,
-                        " charges."
-                    )
-                end
-            end
-        end
-    end
 end
