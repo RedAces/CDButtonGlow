@@ -74,8 +74,9 @@ function x:OnEnable()
 
     self:updateEverything()
 
-    -- https://www.wowace.com/projects/ace3/pages/api/ace-timer-3-0
-    self:ScheduleRepeatingTimer("checkCooldowns", 0.1)
+    self:RegisterEvent("ACTIONBAR_SLOT_CHANGED", "updateEverything")
+    self:RegisterEvent("ACTIONBAR_SHOWGRID", "updateEverything")
+    self:RegisterEvent("ACTIONBAR_HIDEGRID", "updateEverything")
 end
 
 
@@ -154,6 +155,10 @@ end
 
 
 function x:updateEverything()
+    if self.checkCooldownsTimer then
+        self:CancelTimer(self.checkCooldownsTimer)
+    end
+
     for _, button in pairs(self.activeGlows) do
         self:HideGlow(button)
     end
@@ -193,6 +198,9 @@ function x:updateEverything()
             end
         end
     end
+
+    -- https://www.wowace.com/projects/ace3/pages/api/ace-timer-3-0
+    self.checkCooldownsTimer = self:ScheduleRepeatingTimer("checkCooldowns", 0.1)
 end
 
 
