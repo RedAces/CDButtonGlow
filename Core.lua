@@ -74,11 +74,9 @@ function x:OnEnable()
 
     self:updateEverything()
 
-    self:RegisterEvent("ACTIONBAR_SLOT_CHANGED", "updateEverything")
-    self:RegisterEvent("ACTIONBAR_SHOWGRID", "updateEverything")
-    self:RegisterEvent("ACTIONBAR_HIDEGRID", "updateEverything")
-    self:RegisterEvent("PLAYER_TALENT_UPDATE", "updateEverything")
-    self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", "updateEverything")
+    self:RegisterEvent("ACTIONBAR_HIDEGRID", "updateEverythingDelayed")
+    self:RegisterEvent("PLAYER_TALENT_UPDATE", "updateEverythingDelayed")
+    self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", "updateEverythingDelayed")
 end
 
 
@@ -156,7 +154,7 @@ function x:analyseButton(button)
 end
 
 
-function x:updateEverything()
+function x:updateEverything(arg1)
     if self.checkCooldownsTimer then
         self:CancelTimer(self.checkCooldownsTimer)
     end
@@ -203,6 +201,14 @@ function x:updateEverything()
 
     -- https://www.wowace.com/projects/ace3/pages/api/ace-timer-3-0
     self.checkCooldownsTimer = self:ScheduleRepeatingTimer("checkCooldowns", 0.1)
+end
+
+function x:updateEverythingDelayed(eventName)
+    if self.debug then
+        self:Print("Updating everything in 0.25 sec because of", eventName, "...")
+    end
+
+    self:ScheduleTimer("updateEverything", 0.25)
 end
 
 
