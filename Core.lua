@@ -119,7 +119,6 @@ function x:analyseButton(button)
     end
 
     -- test if button is visible
-    -- test if spell is learned
 
     local slot = button:CalculateAction()
     if slot and HasAction(slot) then
@@ -132,6 +131,11 @@ function x:analyseButton(button)
         end
 
         if spellId and spellId ~= 0 then
+            -- 2nd parameter is "IsPetSpell"
+            if not IsSpellKnown(spellId) and not IsSpellKnown(spellId, true) then
+                return
+            end
+
             local cooldown = self:ParseSpellCooldown(spellId)
             if cooldown ~= nil and cooldown >= self:GetCooldownMinimum() then
                 self.buttonSpellIds[spellId] = self.buttonSpellIds[spellId] or {}
