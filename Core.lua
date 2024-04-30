@@ -55,20 +55,20 @@ function x:OnEnable()
 
     self:updateEverything()
 
-    self:ScheduleRepeatingTimer("checkCooldowns", 1) -- TODO revert back to 1
+    self:ScheduleRepeatingTimer("checkCooldowns", 1) -- TODO revert back to 0.1
 end
 
 
 function x:checkCooldowns()
     for spellId, buttons in pairs(self.buttonSpellIds) do
-        local start = GetSpellCooldown(spellId, BOOKTYPE_SPELL)
+        local start = GetSpellCooldown(spellId)
 
         local isOnCooldown = start ~= nil and start > 0
 
         -- TODO was ist mit charges?
 
         for _, button in pairs(buttons) do
-            if isOnCooldown and self.activeGlows[button:GetName()] ~= nil then
+            if isOnCooldown and self.activeGlows[button:GetName()] then
                 self:Print(
                     GetSpellLink(spellId),
                     'is now on CD and',
@@ -79,7 +79,7 @@ function x:checkCooldowns()
                 self.activeGlows[button:GetName()] = nil
             end
 
-            if isOnCooldown == false and self.activeGlows[button:GetName()] == nil then
+            if not isOnCooldown and not self.activeGlows[button:GetName()] then
                 self:Print(
                     GetSpellLink(spellId),
                     'isnt on CD anymore and',
