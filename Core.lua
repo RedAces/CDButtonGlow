@@ -2,7 +2,7 @@
 local AddonName, addon = ...
 
 -- See https://wowpedia.fandom.com/wiki/Ace3_for_Dummies
-addon.engine = LibStub("AceAddon-3.0"):NewAddon(AddonName, "AceConsole-3.0", "AceEvent-3.0")
+addon.engine = LibStub("AceAddon-3.0"):NewAddon(AddonName, "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0")
 
 -- Local Handle to the Engine
 local x = addon.engine
@@ -42,7 +42,11 @@ function x:OnInitialize()
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions(AddonName .. "_profiles", "Profiles", AddonName)
 
     self:RegisterChatCommand('rabg', 'SlashCommand')
+
+    self.spellsOnCooldown = {}
+    self.spellsNotOnCooldown = {}
 end
+
 
 function x:OnEnable()
     if not self.tooltip then
@@ -50,10 +54,43 @@ function x:OnEnable()
         self.tooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
     end
 
-    self:updateButtonSpells()
+    self:updateEverything()
+
     self:RegisterEvent("UNIT_SPELLCAST_SENT", "OnSpellCastSent")
     self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", "OnSpellCastSucceeded")
+
+    self:ScheduleRepeatingTimer("checkCooldowns", 1) -- TODO revert back to 1
 end
+
+
+function x:checkCooldowns()
+    self:Print(
+        "Checking ",
+        #self.spellsOnCooldown,
+        " spells on cooldown..."
+    )
+
+    for spellId in pairs(self.spellsOnCooldown) do
+        local start = GetSpellCooldown(spellId, BOOKTYPE_SPELL)
+
+        -- TODO was ist mit charges?
+
+        if start ~= nil or start == 0 then
+            self:Print(
+                GetSpellLink(spellId),
+                '  isnt on CD anymore.'
+            )
+
+            for _, button in pairs(self.buttonSpellIds[spellId]) do
+                _G["WeakAuras"].ShowOverlayGlow(button)
+            end
+
+            self.spellsOnCooldown[spellId] = nil
+            self.spellsNotOnCooldown[spellId] = 1
+        end
+    end
+end
+
 
 function x:analyseButton(button)
     local slot = button:CalculateAction()
@@ -67,15 +104,23 @@ function x:analyseButton(button)
         end
 
         if spellId and spellId ~= 0 then
-            self.buttonSpellIds[spellId] = self.buttonSpellIds[spellId] or {}
-            table.insert(self.buttonSpellIds[spellId], button)
+            local cooldown = self:ParseSpellCooldown(spellId)
+            if cooldown ~= nil and cooldown >= self:GetCooldownMinimum() then
+                self.buttonSpellIds[spellId] = self.buttonSpellIds[spellId] or {}
+                table.insert(self.buttonSpellIds[spellId], button)
 
-            self:GetSpellCooldown(spellId)
+                if self.spellsNotOnCooldown[spellId] == nil then
+                    -- We're setting the spell "on cooldown" because then the checkCooldowns() will check it.
+                    self.spellsOnCooldown[spellId] = 1
+                    self.spellsNotOnCooldown[spellId] = nil
+                end
+            end
         end
     end
 end
 
-function x:updateButtonSpells()
+
+function x:updateEverything()
     self.buttonSpellIds = {}
     self.spellCooldowns = {}
 
@@ -124,7 +169,8 @@ function x:updateButtonSpells()
     end
 end
 
-function x:GetSpellCooldown(spellId)
+
+function x:ParseSpellCooldown(spellId)
     if not self.spellCooldowns[spellId] then
         self.tooltip:ClearLines()
         self.tooltip:SetSpellByID(spellId)
@@ -158,10 +204,11 @@ function x:GetSpellCooldown(spellId)
     return self.spellCooldowns[spellId]
 end
 
+
 function x:ShowButtonSpells()
     for spellId, buttons in pairs(self.buttonSpellIds) do
         for _, button in pairs(buttons) do
-            print(
+            self:Print(
                 GetSpellLink(spellId),
                 ': ',
                 button:GetName(),
@@ -171,22 +218,40 @@ function x:ShowButtonSpells()
             )
         end
     end
+
+    for spellId in pairs(self.spellsOnCooldown) do
+        self:Print(
+            GetSpellLink(spellId),
+            ' is on cooldown.'
+        )
+    end
+
+    for spellId in pairs(self.spellsNotOnCooldown) do
+        self:Print(
+            GetSpellLink(spellId),
+            ' is not on cooldown.'
+        )
+    end
 end
+
 
 function x:SlashCommand(msg)
     if msg == 'update' then
-        x:updateButtonSpells()
+        x:updateEverything()
     elseif msg == 'show' then
         x:ShowButtonSpells()
     end
 end
 
+
 function x:GetCooldownMinimum(info)
     return self.db.profile.cooldownMinimum
 end
 
+
 function x:SetCooldownMinimum(info, value)
     self.db.profile.cooldownMinimum = value
+    self:updateEverything()
 end
 
 function x:OnSpellCastSent(eventName, unit, target, castGUID, spellId)
@@ -195,6 +260,7 @@ function x:OnSpellCastSent(eventName, unit, target, castGUID, spellId)
         self.currentCastGUID = castGUID
     end
 end
+
 
 function x:OnSpellCastSucceeded(eventName, unitTarget, castGUID, spellId)
     -- https://wowpedia.fandom.com/wiki/UNIT_SPELLCAST_SUCCEEDED
@@ -205,18 +271,21 @@ function x:OnSpellCastSucceeded(eventName, unitTarget, castGUID, spellId)
             local currentCharges = GetSpellCharges(spellId)
 
             if currentCharges == 1 or currentCharges == nil then
-                -- IDK why but Blood Boil has "1 charges" when none were available
+                -- IDK why but Blood Boil has "currentCharges == 1" when none were available
                 for _, button in pairs(self.buttonSpellIds[spellId]) do
-                    print(
+                    self:Print(
                         button:GetName(),
                         GetSpellLink(spellId),
                         " should stop glowing."
                     )
                     _G["WeakAuras"].HideOverlayGlow(button)
                 end
+
+                self.spellsOnCooldown[spellId] = 1
+                self.spellsNotOnCooldown[spellId] = nil
             else
                 for _, button in pairs(self.buttonSpellIds[spellId]) do
-                    print(
+                    self:Print(
                         button:GetName(),
                         GetSpellLink(spellId),
                         " should still be glowing, because it has ",
