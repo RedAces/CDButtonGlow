@@ -63,7 +63,7 @@ function x:OnInitialize()
 
     self.debug = false
     self.activeGlows = {}
-    self.isDragonriding = false
+    self.isDragonRiding = false
 end
 
 
@@ -81,15 +81,11 @@ function x:OnEnable()
 
     self:RegisterEvent("UNIT_POWER_BAR_SHOW", "onPowerBarChange")
     self:RegisterEvent("UNIT_POWER_BAR_HIDE", "onPowerBarChange")
-    self:RegisterEvent("PLAYER_ENTERING_WORLD", "onPowerBarChange")
+    self:RegisterEvent("PLAYER_ENTERING_WORLD", "onPlayerEnteringWorld")
 end
 
 
 function x:checkCooldowns()
-    if self.isDragonriding then
-        return
-    end
-
     for spellId, buttons in pairs(self.buttonSpellIds) do
         local start, duration = GetSpellCooldown(spellId)
         local now = GetTime()
@@ -110,8 +106,7 @@ function x:checkCooldowns()
                         'should stop glowing.'
                     )
                 end
-                self:HideGlow(button)
-                self.activeGlows[button:GetName()] = nil
+                self:HideGlow(button, true)
             end
 
             if not isOnCooldown and not self.activeGlows[button:GetName()] then
@@ -124,7 +119,6 @@ function x:checkCooldowns()
                     )
                 end
                 self:ShowGlow(button)
-                self.activeGlows[button:GetName()] = button
             end
         end
     end
@@ -169,6 +163,7 @@ end
 function x:updateEverything(arg1)
     if self.checkCooldownsTimer then
         self:CancelTimer(self.checkCooldownsTimer)
+        self.checkCooldownsTimer = nil
     end
 
     self:HideAllActiveGlows(true)
@@ -347,10 +342,12 @@ function x:ShowGlow(button)
     elseif glowType == "blizz" then
         LCG.ButtonGlow_Start(button)
     end
+
+    self.activeGlows[button:GetName()] = button
 end
 
 
-function x:HideGlow(button)
+function x:HideGlow(button, removeFromActiveGlows)
     local glowType = self:GetGlowType()
     if glowType == "pixel" then
         LCG.PixelGlow_Stop(
@@ -367,31 +364,39 @@ function x:HideGlow(button)
     elseif glowType == "blizz" then
         LCG.ButtonGlow_Stop(button)
     end
+
+    if removeFromActiveGlows then
+        self.activeGlows[button:GetName()] = nil
+    end
 end
 
 
 function x:HideAllActiveGlows(removeFromActiveGlows)
     for _, button in pairs(self.activeGlows) do
-        self:HideGlow(button)
-        if removeFromActiveGlows then
-            self.activeGlows[button:GetName()] = nil
-        end
+        self:HideGlow(button, removeFromActiveGlows)
     end
 end
 
 
-function x:onPowerBarChange()
-    self.isDragonriding = UnitPowerBarID("player") == 631
+function x:onPowerBarChange(eventName)
+    local isDragonRiding = UnitPowerBarID("player") == 631
 
-    if self.debug then
-        if self.isDragonriding then
-            self:Print("Player is now dragon riding.")
-        else
-            self:Print("Player is not dragon riding.")
+    if self.isDragonRiding ~= isDragonRiding then
+        self.isDragonRiding = isDragonRiding
+
+        if self.debug then
+            if self.isDragonRiding then
+                self:Print("Player is now dragon riding.")
+            else
+                self:Print("Player is not dragon riding.")
+            end
         end
-    end
 
-    if self.isDragonriding then
-        self:HideAllActiveGlows(true)
+        self:updateEverythingDelayed(eventName)
     end
+end
+
+
+function x:onPlayerEnteringWorld()
+    self.isDragonRiding = UnitPowerBarID("player") == 631
 end
