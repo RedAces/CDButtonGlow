@@ -275,9 +275,9 @@ end
 
 function x:SlashCommand(msg)
     if msg == 'update' then
-        x:updateEverything()
+        self:updateEverything()
     elseif msg == 'show' then
-        x:ShowButtonSpells()
+        self:ShowButtonSpells()
     elseif msg == 'debug' then
         self.debug = not self.debug
     end
