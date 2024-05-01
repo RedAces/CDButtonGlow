@@ -78,6 +78,7 @@ function x:OnEnable()
     self:RegisterEvent("ACTIONBAR_HIDEGRID", "updateEverythingDelayed")
     self:RegisterEvent("PLAYER_TALENT_UPDATE", "updateEverythingDelayed")
     self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", "updateEverythingDelayed")
+    self:RegisterEvent("SPELLS_CHANGED", "updateEverythingDelayed")
 
     self:RegisterEvent("UNIT_POWER_BAR_SHOW", "onPowerBarChange")
     self:RegisterEvent("UNIT_POWER_BAR_HIDE", "onPowerBarChange")
