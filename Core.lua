@@ -72,9 +72,13 @@ function x:OnInitialize()
             exclusions[tostring(spellId)] = GetSpellInfo(spellId)
         end
 
-        options["args"]["exclusions"]["args"]["excludedNewSpells"]["values"] = exclusions
+        for spellId, _ in pairs(self.db.profile.excludedSpellIds) do
+            exclusions[spellId] = GetSpellInfo(tonumber(spellId))
+        end
 
-        -- TODO add already excluded spells to it
+        -- Sort by class
+
+        options["args"]["exclusions"]["args"]["excludedNewSpells"]["values"] = exclusions
 
         return options
     end
@@ -438,6 +442,11 @@ end
 
 
 function x:SetSpellIdExcluded(info, spellId, isExcluded)
-    self.db.profile.excludedSpellIds[tostring(spellId)] = isExcluded
+    if isExcluded then
+        self.db.profile.excludedSpellIds[tostring(spellId)] = isExcluded
+    else
+        self.db.profile.excludedSpellIds[tostring(spellId)] = nil
+    end
+
     self:updateEverything()
 end
