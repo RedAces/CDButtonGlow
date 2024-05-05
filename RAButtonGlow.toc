@@ -6,3 +6,4 @@
 ## OptionalDeps: Ace3, LibCustomlow-1.0
 
 Core.lua
+Options.lua
