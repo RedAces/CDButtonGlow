@@ -18,11 +18,11 @@ function x:OnInitialize()
             excludedSpellIds = {}
         }
     }
-    self.db = LibStub("AceDB-3.0"):New("RAButtonGlowDB", dbDefaults, true)
+    self.db = LibStub("AceDB-3.0"):New("CDButtonGlowDB", dbDefaults, true)
 
     self:InitOptions()
 
-    self:RegisterChatCommand('rabg', 'SlashCommand')
+    self:RegisterChatCommand('cdbg', 'SlashCommand')
 
     self.debug = false
     self.activeGlows = {}
@@ -32,7 +32,7 @@ end
 
 function x:OnEnable()
     if not self.tooltip then
-        self.tooltip = CreateFrame("GameTooltip", "RAButtonGlowScanTooltip", UIParent, "GameTooltipTemplate")
+        self.tooltip = CreateFrame("GameTooltip", "CDButtonGlowScanTooltip", UIParent, "GameTooltipTemplate")
         self.tooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
     end
 
@@ -45,6 +45,7 @@ function x:OnEnable()
 
     self:RegisterEvent("UNIT_POWER_BAR_SHOW", "onPowerBarChange")
     self:RegisterEvent("UNIT_POWER_BAR_HIDE", "onPowerBarChange")
+
     self:RegisterEvent("PLAYER_ENTERING_WORLD", "onPlayerEnteringWorld")
 end
 

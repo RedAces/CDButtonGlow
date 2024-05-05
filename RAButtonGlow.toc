@@ -1,9 +1,0 @@
-## Interface: 100207
-## Title: RA Button Glow
-## Notes: Adds an action bar glow if a CD is ready
-## Author: RedAces
-## SavedVariables: RAButtonGlowDB
-## OptionalDeps: Ace3, LibCustomlow-1.0
-
-Core.lua
-Options.lua
