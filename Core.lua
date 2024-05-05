@@ -22,8 +22,6 @@ function x:OnInitialize()
 
     self:InitOptions()
 
-    self:RegisterChatCommand('cdbg', 'SlashCommand')
-
     self.debug = false
     self.activeGlows = {}
     self.isDragonRiding = false
@@ -240,17 +238,6 @@ function x:ShowButtonSpells()
                 ' CD'
             )
         end
-    end
-end
-
-
-function x:SlashCommand(msg)
-    if msg == 'update' then
-        self:updateEverything()
-    elseif msg == 'show' then
-        self:ShowButtonSpells()
-    elseif msg == 'debug' then
-        self.debug = not self.debug
     end
 end
 

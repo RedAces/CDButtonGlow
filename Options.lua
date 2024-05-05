@@ -12,44 +12,62 @@ function x:InitOptions()
             handler = x,
             type = "group",
             args = {
-                cooldownMinimum = {
-                    type = "range",
-                    name = "Cooldown Minimum",
-                    desc = "Only glow buttons of spells with a cooldown of at least x seconds.",
-                    min = 0,
-                    max = 300,
-                    step = 1,
-                    bigStep = 30,
-                    get = "GetCooldownMinimum",
-                    set = "SetCooldownMinimum",
+                explanation = {
+                    type = "description",
+                    name = "CD Button Glow lights up your action bar buttons if the spell behind it is ready. You can customize which spells are used and which glow you want."
                 },
-                glowType = {
-                    type = "select",
-                    name = "Type of action bar glow",
-                    desc = "Which type of glow do you want?",
-                    values = {
-                        autocast = "Auto Cast Shine",
-                        pixel = "Pixel Glow",
-                        procc = "Proc Glow",
-                        blizz = "Action Button Glow"
-                    },
-                    get = "GetGlowType",
-                    set = "SetGlowType",
+                general = {
+                    type = "group",
+                    name = "General options",
+                    order = 100,
+                    args = {
+                        cooldownMinimum = {
+                            type = "range",
+                            name = "Cooldown Minimum",
+                            desc = "Only glow buttons of spells with a cooldown of at least x seconds.",
+                            min = 0,
+                            max = 300,
+                            step = 1,
+                            bigStep = 30,
+                            get = "GetCooldownMinimum",
+                            set = "SetCooldownMinimum",
+                        },
+                        glowType = {
+                            type = "select",
+                            name = "Type of action bar glow",
+                            desc = "Which type of glow do you want?",
+                            values = {
+                                autocast = "Auto Cast Shine",
+                                pixel = "Pixel Glow",
+                                procc = "Proc Glow",
+                                blizz = "Action Button Glow"
+                            },
+                            get = "GetGlowType",
+                            set = "SetGlowType",
+                        },
+                    }
                 },
                 exclusions = {
                     type = "group",
                     name = "Excluded spells",
+                    order = 200,
                     args = {
+                        explanation = {
+                            type = "description",
+                            name = "You can exclude spells from the action bar glow if you want. This is saved per specialization, so you can exclude a spell in one specc but let its button glow in another.",
+                            order = 100
+                        },
                         excludedNewSpells = {
                             type = "multiselect",
                             name = "Excluded spells for " .. self.playerSpecName .. " " .. self.playerClassLocalized,
+                            order = 200,
                             desc = "For which spells do you want the buttons to NOT light up?",
                             get = "IsSpellIdExcluded",
                             set = "SetSpellIdExcluded"
                         }
                     }
                 }
-            },
+            }
         }
 
         local exclusions = {}
@@ -74,6 +92,24 @@ function x:InitOptions()
     local profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
     LibStub("AceConfig-3.0"):RegisterOptionsTable(AddonName .. "_profiles", profiles)
     LibStub("AceConfigDialog-3.0"):AddToBlizOptions(AddonName .. "_profiles", "Profiles", AddonName)
+
+    self:RegisterChatCommand('cdbg', 'SlashCommand')
+    self:RegisterChatCommand('cdbuttonglow', 'SlashCommand')
+end
+
+
+function x:SlashCommand(msg)
+    if msg == 'update' then
+        self:updateEverything()
+    elseif msg == 'show' then
+        self:ShowButtonSpells()
+    elseif msg == 'debug' then
+        self.debug = not self.debug
+    else
+        -- https://github.com/Stanzilla/WoWUIBugs/issues/89
+        InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+        InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+    end
 end
 
 
