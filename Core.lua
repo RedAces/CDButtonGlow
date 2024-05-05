@@ -57,7 +57,7 @@ function x:OnInitialize()
                     args = {
                         excludedNewSpells = {
                             type = "multiselect",
-                            name = "Excluded spells",
+                            name = "Excluded spells for " .. self.playerSpecName .. " " .. self.playerClassLocalized,
                             desc = "For which spells do you want the buttons to NOT light up?",
                             get = "IsSpellIdExcluded",
                             set = "SetSpellIdExcluded"
@@ -72,11 +72,11 @@ function x:OnInitialize()
             exclusions[tostring(spellId)] = GetSpellInfo(spellId)
         end
 
-        for spellId, _ in pairs(self.db.profile.excludedSpellIds) do
-            exclusions[spellId] = GetSpellInfo(tonumber(spellId))
+        if self.db.profile.excludedSpellIds[self.playerClass] and self.db.profile.excludedSpellIds[self.playerClass][self.playerSpecId] then
+            for spellId, _ in pairs(self.db.profile.excludedSpellIds[self.playerClass][self.playerSpecId]) do
+                exclusions[spellId] = GetSpellInfo(tonumber(spellId))
+            end
         end
-
-        -- Sort by class
 
         options["args"]["exclusions"]["args"]["excludedNewSpells"]["values"] = exclusions
 
@@ -195,6 +195,10 @@ end
 
 
 function x:updateEverything(arg1)
+    self.playerClassLocalized, self.playerClass = UnitClass("player")
+    self.playerSpecId = GetSpecialization()
+    _, self.playerSpecName = GetSpecializationInfo(self.playerSpecId)
+
     if self.checkCooldownsTimer then
         self:CancelTimer(self.checkCooldownsTimer)
         self.checkCooldownsTimer = nil
@@ -437,15 +441,27 @@ end
 
 
 function x:IsSpellIdExcluded(info, spellId)
-    return self.db.profile.excludedSpellIds[tostring(spellId)]
+    if not self.db.profile.excludedSpellIds[self.playerClass] or not self.db.profile.excludedSpellIds[self.playerClass][self.playerSpecId] then
+        return false
+    end
+
+    return self.db.profile.excludedSpellIds[self.playerClass][self.playerSpecId][tostring(spellId)]
 end
 
 
 function x:SetSpellIdExcluded(info, spellId, isExcluded)
+    if not self.db.profile.excludedSpellIds[self.playerClass] then
+        self.db.profile.excludedSpellIds[self.playerClass] = {}
+    end
+
+    if not self.db.profile.excludedSpellIds[self.playerClass][self.playerSpecId] then
+        self.db.profile.excludedSpellIds[self.playerClass][self.playerSpecId] = {}
+    end
+
     if isExcluded then
-        self.db.profile.excludedSpellIds[tostring(spellId)] = isExcluded
+        self.db.profile.excludedSpellIds[self.playerClass][self.playerSpecId][tostring(spellId)] = true
     else
-        self.db.profile.excludedSpellIds[tostring(spellId)] = nil
+        self.db.profile.excludedSpellIds[self.playerClass][self.playerSpecId][tostring(spellId)] = nil
     end
 
     self:updateEverything()
