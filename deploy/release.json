@@ -1,0 +1,16 @@
+{
+  "releases": [
+    {
+      "name": "CD Button Glow",
+      "version": "0.5",
+      "filename": "CDButtonGlow-0.5.zip",
+      "nolib": false,
+      "metadata": [
+        {
+          "flavor": "mainline",
+          "interface": 100206
+        }
+      ]
+    }
+  ]
+}
