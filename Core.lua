@@ -125,7 +125,7 @@ function x:analyseButton(button)
 end
 
 
-function x:updateEverything(arg1)
+function x:updateEverything()
     self.playerClassLocalized, self.playerClass = UnitClass("player")
     self.playerSpecId = GetSpecialization()
     _, self.playerSpecName = GetSpecializationInfo(self.playerSpecId)

@@ -95,6 +95,17 @@ function x:InitOptions()
 
     self:RegisterChatCommand('cdbg', 'SlashCommand')
     self:RegisterChatCommand('cdbuttonglow', 'SlashCommand')
+
+    AddonCompartmentFrame:RegisterAddon({
+      text = AddonName,
+      registerForAnyClick = true,
+      notCheckable = true,
+      func = function(btn, arg1, arg2, checked, mouseButton)
+        -- https://github.com/Stanzilla/WoWUIBugs/issues/89
+        InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+        InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+      end
+    })
 end
 
 
