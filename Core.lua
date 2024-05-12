@@ -128,17 +128,22 @@ function x:analyseButton(button, debug)
             end
 
             local cooldown = self:ParseSpellCooldown(spellId)
+
+            if debug then
+                if cooldown then
+                    if cooldown >= self:GetCooldownMinimum() then
+                        self:Print(button:GetName() .. ': found cooldown of ' .. cooldown .. ' seconds, its longer than the configured minimum of ' .. self:GetCooldownMinimum() .. ' seconds.')
+                    else
+                        self:Print(button:GetName() .. ': found cooldown of ' .. cooldown .. ' seconds, its shorter than the configured minimum of ' .. self:GetCooldownMinimum() .. ' seconds.')
+                    end
+                else
+                    self:Print(button:GetName() .. ': found NO cooldown.')
+                end
+            end
+
             if cooldown ~= nil and cooldown >= self:GetCooldownMinimum() then
                 self.buttonSpellIds[spellId] = self.buttonSpellIds[spellId] or {}
                 table.insert(self.buttonSpellIds[spellId], button)
-
-                if debug then
-                    self:Print(button:GetName() .. ': found cooldown of ' .. cooldown .. ' seconds.')
-                end
-            else
-                if debug then
-                    self:Print(button:GetName() .. ': found NO cooldown.')
-                end
             end
         else
             if debug then
