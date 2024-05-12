@@ -1,5 +1,11 @@
-# Whats this?
+# CDButtonGlow
 
-This is an addon for World of Warcraft (tm).
+This addon analyzes your action bars and adds a configurable glow to your buttons if the spell on it is off cooldown.
 
-Its named "CDButtonGlow" and it adds glow to your action bar buttons if the spell is ready.
+You can define a minimum cooldown (in seconds) in order to filter spells.
+
+You can also exclude spells alltogether from glowing.
+
+Inspired by [Cooldown Ready Button Glow](https://wago.io/6p2V5HGGm) by [justdiscipline](https://wago.io/p/justdiscipline).
+
+Written by Feylynn-Antonidas (EU).
