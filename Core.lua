@@ -114,8 +114,9 @@ function x:analyseButton(button, debug)
 
         if spellId and spellId ~= 0 then
             -- 2nd parameter is 'IsPetSpell'
-            if not IsSpellKnown(spellId) and not IsSpellKnown(spellId, true) and spellId ~= 187827 then
+            if not IsSpellKnown(spellId) and not IsSpellKnown(spellId, true) and spellId ~= 187827 and spellId ~= 102558 then
                 -- Bugfix Patch 10.2.7: Vengeance DH's Metamorphosis (187827) is 'unknown' to the caster.
+                -- Bugfix Patch 10.2.7: Guardian Druid's Incarnation (102558) is 'unknown' to the caster.
                 if debug then
                     self:Print(button:GetName() .. ' has UNKNOWN spell ' .. GetSpellInfo(spellId) .. ' (#' .. spellId .. ') on it.')
                 end
