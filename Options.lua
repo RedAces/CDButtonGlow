@@ -133,12 +133,12 @@ function x:SlashCommand(msg)
     end
 
     local command, args = msg:match('^([a-zA-Z0-9-]+) (.*)')
-    if command == 'analyse-btn' then
+    if command == 'analyse-btn' or command == 'analyze-btn' then
         self:analyseButton(_G[args], true)
         return
     end
 
-    self:Print('Unknown chat command '/cdbg ' .. msg .. ''')
+    self:Print('Unknown chat command "/cdbg ' .. msg .. '"')
 end
 
 function x:GetCooldownMinimum(info)
