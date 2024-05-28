@@ -22,9 +22,10 @@ function x:OnInitialize()
 
     self:InitOptions()
 
-    self.debug = false
     self.activeGlows = {}
+    self.debug = false
     self.isDragonRiding = false
+    self.spellCooldowns = {}
 end
 
 
@@ -172,7 +173,6 @@ function x:updateEverything()
     self:HideAllActiveGlows(true)
 
     self.buttonSpellIds = {}
-    self.spellCooldowns = {}
 
     if _G.Bartender4 then
         for i = 1, 120 do
@@ -220,43 +220,51 @@ end
 
 
 function x:ParseSpellCooldown(spellId)
-    if not self.spellCooldowns[spellId] then
-        self.tooltip:ClearLines()
+    self.tooltip:ClearLines()
+    self.tooltip:SetSpellByID(spellId)
+
+    local numLines = self.tooltip:NumLines()
+    if numLines == 0 then
+        self:Print(
+            'Tooltip has 0 lines for spell',
+            GetSpellLink(spellId)
+        )
+        self.tooltip:Hide()
+        self.tooltip = CreateFrame('GameTooltip', 'CDButtonGlowScanTooltip', UIParent, 'GameTooltipTemplate')
+        self.tooltip:SetOwner(WorldFrame, 'ANCHOR_NONE')
         self.tooltip:SetSpellByID(spellId)
+    end
 
-        for line = 1, self.tooltip:NumLines() do
-            local tooltipTextObject = _G[self.tooltip:GetName() .. 'TextRight' .. line]
-            local cooldownText = tooltipTextObject:GetText()
+    for line = 1, self.tooltip:NumLines() do
+        local tooltipTextObject = _G[self.tooltip:GetName() .. 'TextRight' .. line]
+        local cooldownText = tooltipTextObject:GetText()
 
-            if cooldownText then
-                local matches = cooldownText:match('([0-9.]+) min cooldown')
-                if matches then
-                    self.spellCooldowns[spellId] = tonumber(matches) * 60
-                    return self.spellCooldowns[spellId]
-                end
+        if cooldownText then
+            local matches = cooldownText:match('([0-9.]+) min cooldown')
+            if matches then
+                self.spellCooldowns[spellId] = tonumber(matches) * 60
+                return self.spellCooldowns[spellId]
+            end
 
-                matches = cooldownText:match('([0-9.]+) sec cooldown')
-                if matches then
-                    self.spellCooldowns[spellId] = tonumber(matches)
-                    return self.spellCooldowns[spellId]
-                end
+            matches = cooldownText:match('([0-9.]+) sec cooldown')
+            if matches then
+                self.spellCooldowns[spellId] = tonumber(matches)
+                return self.spellCooldowns[spellId]
+            end
 
-                matches = cooldownText:match('([0-9.]+) min recharge')
-                if matches then
-                    self.spellCooldowns[spellId] = tonumber(matches) * 60
-                    return self.spellCooldowns[spellId]
-                end
+            matches = cooldownText:match('([0-9.]+) min recharge')
+            if matches then
+                self.spellCooldowns[spellId] = tonumber(matches) * 60
+                return self.spellCooldowns[spellId]
+            end
 
-                matches = cooldownText:match('([0-9.]+) sec recharge')
-                if matches then
-                    self.spellCooldowns[spellId] = tonumber(matches)
-                    return self.spellCooldowns[spellId]
-                end
+            matches = cooldownText:match('([0-9.]+) sec recharge')
+            if matches then
+                self.spellCooldowns[spellId] = tonumber(matches)
+                return self.spellCooldowns[spellId]
             end
         end
     end
-
-    return self.spellCooldowns[spellId]
 end
 
 
