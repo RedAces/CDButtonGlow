@@ -1,0 +1,3 @@
+[submodule "libs/LibCustomGlow"]
+	path = libs/LibCustomGlow
+	url = git@github.com:Stanzilla/LibCustomGlow.git
