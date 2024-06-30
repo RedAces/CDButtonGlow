@@ -72,12 +72,12 @@ function x:InitOptions()
 
         local exclusions = {}
         for spellId, _ in pairs(self.buttonSpellIds) do
-            exclusions[tostring(spellId)] = GetSpellInfo(spellId)
+            exclusions[tostring(spellId)] = self:GetSpellName(spellId)
         end
 
         if self.db.profile.excludedSpellIds[self.playerClass] and self.db.profile.excludedSpellIds[self.playerClass][self.playerSpecId] then
             for spellId, _ in pairs(self.db.profile.excludedSpellIds[self.playerClass][self.playerSpecId]) do
-                exclusions[spellId] = GetSpellInfo(tonumber(spellId))
+                exclusions[spellId] = self:GetSpellName(tonumber(spellId))
             end
         end
 

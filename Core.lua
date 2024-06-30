@@ -26,6 +26,13 @@ function x:OnInitialize()
     self.debug = false
     self.isDragonRiding = false
     self.spellCooldowns = {}
+
+    self.patchNumber = select(4, GetBuildInfo())
+    self.isTww = self.patchNumber >= 110000
+    if self.isTww then
+        self:Print('TWW Beta detected!')
+        -- Changes: https://github.com/Gethe/wow-ui-source/blob/beta/Interface/AddOns/Blizzard_Deprecated/11_0_0_SpellBookAPITransitionGuide.lua#L39
+    end
 end
 
 
@@ -52,9 +59,16 @@ end
 function x:checkCooldowns()
     for spellId, buttons in pairs(self.buttonSpellIds) do
         if not self:IsSpellIdExcluded({}, spellId) then
-            local start, duration = GetSpellCooldown(spellId)
-            local now = GetTime()
+            local start, duration
+            if self.isTww then
+                local spellCdInfo = C_Spell.GetSpellCooldown(spellId)
+                start = spellCdInfo.startTime or 0
+                duration = spellCdInfo.duration or 0
+            else
+                start, duration = GetSpellCooldown(spellId)
+            end
 
+            local now = GetTime()
             local isOnCooldown = start and start > 0
             local isOnGcd = isOnCooldown and duration and (start + duration - now) <= 1.5
 
@@ -120,13 +134,13 @@ function x:analyseButton(button, debug)
                     and spellId ~= 212641 -- Bugfix Patch 10.2.7: Protection Paladin's Guardian of Ancient Kings
             then
                 if debug then
-                    self:Print(button:GetName() .. ' has UNKNOWN spell ' .. GetSpellInfo(spellId) .. ' (#' .. spellId .. ') on it.')
+                    self:Print(button:GetName() .. ' has UNKNOWN spell ' .. self:GetSpellName(spellId) .. ' (#' .. spellId .. ') on it.')
                 end
                 return
             end
 
             if debug then
-                self:Print(button:GetName() .. ' has spell ' .. GetSpellInfo(spellId) .. ' (#' .. spellId .. ').')
+                self:Print(button:GetName() .. ' has spell ' .. self:GetSpellName(spellId) .. ' (#' .. spellId .. ').')
             end
 
             local cooldown = self:ParseSpellCooldown(spellId)
@@ -372,4 +386,13 @@ end
 
 function x:onPlayerEnteringWorld()
     self.isDragonRiding = UnitPowerBarID('player') == 631
+end
+
+
+function x:GetSpellName(spellId)
+    if self.isTww then
+        return C_Spell.GetSpellName(spellId)
+    end
+
+    return GetSpellInfo(spellId)
 end
