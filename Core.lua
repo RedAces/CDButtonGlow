@@ -78,8 +78,15 @@ function x:checkCooldowns()
                 if isOnCooldown and not isOnGcd and self.activeGlows[button:GetName()] then
                     -- only hide the glow if its on cooldown but not on GCD
                     if self.debug then
+                        local spellLink
+                        if self.isTww then
+                            spellLink = C_Spell.GetSpellLink(spellId)
+                        else
+                            spellLink = GetSpellLink(spellId)
+                        end
+
                         self:Print(
-                            GetSpellLink(spellId),
+                            spellLink,
                             'is now on CD and',
                             button:GetName(),
                             'should stop glowing.'
@@ -90,8 +97,14 @@ function x:checkCooldowns()
 
                 if not isOnCooldown and not self.activeGlows[button:GetName()] then
                     if self.debug then
+                        local spellLink
+                        if self.isTww then
+                            spellLink = C_Spell.GetSpellLink(spellId)
+                        else
+                            spellLink = GetSpellLink(spellId)
+                        end
                         self:Print(
-                            GetSpellLink(spellId),
+                            spellLink,
                             'isnt on CD anymore and',
                             button:GetName(),
                             'should start glowing.'
@@ -239,9 +252,16 @@ function x:ParseSpellCooldown(spellId)
 
     local numLines = self.tooltip:NumLines()
     if numLines == 0 then
+        local spellLink
+        if self.isTww then
+            spellLink = C_Spell.GetSpellLink(spellId)
+        else
+            spellLink = GetSpellLink(spellId)
+        end
+
         self:Print(
             'Tooltip has 0 lines for spell',
-            GetSpellLink(spellId)
+            spellLink
         )
         self.tooltip:Hide()
         self.tooltip = CreateFrame('GameTooltip', 'CDButtonGlowScanTooltip', UIParent, 'GameTooltipTemplate')
@@ -285,8 +305,15 @@ end
 function x:ShowButtonSpells()
     for spellId, buttons in pairs(self.buttonSpellIds) do
         for _, button in pairs(buttons) do
+            local spellLink
+            if self.isTww then
+                spellLink = C_Spell.GetSpellLink(spellId)
+            else
+                spellLink = GetSpellLink(spellId)
+            end
+
             self:Print(
-                GetSpellLink(spellId),
+                spellLink,
                 ': ',
                 button:GetName(),
                 ' ',
