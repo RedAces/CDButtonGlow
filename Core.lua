@@ -28,11 +28,6 @@ function x:OnInitialize()
     self.spellCooldowns = {}
 
     self.patchNumber = select(4, GetBuildInfo())
-    self.isTww = self.patchNumber >= 110000
-    if self.isTww then
-        self:Print('TWW Beta detected!')
-        -- Changes: https://github.com/Gethe/wow-ui-source/blob/beta/Interface/AddOns/Blizzard_Deprecated/11_0_0_SpellBookAPITransitionGuide.lua#L39
-    end
 end
 
 
@@ -59,14 +54,9 @@ end
 function x:checkCooldowns()
     for spellId, buttons in pairs(self.buttonSpellIds) do
         if not self:IsSpellIdExcluded({}, spellId) then
-            local start, duration
-            if self.isTww then
-                local spellCdInfo = C_Spell.GetSpellCooldown(spellId)
-                start = spellCdInfo.startTime or 0
-                duration = spellCdInfo.duration or 0
-            else
-                start, duration = GetSpellCooldown(spellId)
-            end
+            local spellCdInfo = C_Spell.GetSpellCooldown(spellId)
+            local start = spellCdInfo.startTime or 0
+            local duration = spellCdInfo.duration or 0
 
             local now = GetTime()
             local isOnCooldown = start and start > 0
@@ -78,12 +68,7 @@ function x:checkCooldowns()
                 if isOnCooldown and not isOnGcd and self.activeGlows[button:GetName()] then
                     -- only hide the glow if its on cooldown but not on GCD
                     if self.debug then
-                        local spellLink
-                        if self.isTww then
-                            spellLink = C_Spell.GetSpellLink(spellId)
-                        else
-                            spellLink = GetSpellLink(spellId)
-                        end
+                        local spellLink = C_Spell.GetSpellLink(spellId)
 
                         self:Print(
                             spellLink,
@@ -97,12 +82,7 @@ function x:checkCooldowns()
 
                 if not isOnCooldown and not self.activeGlows[button:GetName()] then
                     if self.debug then
-                        local spellLink
-                        if self.isTww then
-                            spellLink = C_Spell.GetSpellLink(spellId)
-                        else
-                            spellLink = GetSpellLink(spellId)
-                        end
+                        local spellLink = C_Spell.GetSpellLink(spellId)
                         self:Print(
                             spellLink,
                             'isnt on CD anymore and',
@@ -252,12 +232,7 @@ function x:ParseSpellCooldown(spellId)
 
     local numLines = self.tooltip:NumLines()
     if numLines == 0 then
-        local spellLink
-        if self.isTww then
-            spellLink = C_Spell.GetSpellLink(spellId)
-        else
-            spellLink = GetSpellLink(spellId)
-        end
+        local spellLink = C_Spell.GetSpellLink(spellId)
 
         self:Print(
             'Tooltip has 0 lines for spell',
@@ -305,12 +280,7 @@ end
 function x:ShowButtonSpells()
     for spellId, buttons in pairs(self.buttonSpellIds) do
         for _, button in pairs(buttons) do
-            local spellLink
-            if self.isTww then
-                spellLink = C_Spell.GetSpellLink(spellId)
-            else
-                spellLink = GetSpellLink(spellId)
-            end
+            local spellLink = C_Spell.GetSpellLink(spellId)
 
             self:Print(
                 spellLink,
@@ -417,9 +387,5 @@ end
 
 
 function x:GetSpellName(spellId)
-    if self.isTww then
-        return C_Spell.GetSpellName(spellId)
-    end
-
-    return GetSpellInfo(spellId)
+    return C_Spell.GetSpellName(spellId)
 end
