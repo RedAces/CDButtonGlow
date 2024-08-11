@@ -26,8 +26,6 @@ function x:OnInitialize()
     self.debug = false
     self.isDragonRiding = false
     self.spellCooldowns = {}
-
-    self.patchNumber = select(4, GetBuildInfo())
 end
 
 
