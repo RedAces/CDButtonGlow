@@ -1,4 +1,4 @@
-## Interface: 100207
+## Interface: 110002
 ## Title: CD Button Glow
 ## Notes: Glows an action bar button if the spell on it is ready
 ## Author: RedAces

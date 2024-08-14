@@ -101,9 +101,7 @@ function x:InitOptions()
       registerForAnyClick = true,
       notCheckable = true,
       func = function(btn, arg1, arg2, checked, mouseButton)
-        -- https://github.com/Stanzilla/WoWUIBugs/issues/89
-        InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
-        InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+        Settings.OpenToCategory(self.optionsFrame.name)
       end
     })
 end
@@ -111,9 +109,7 @@ end
 
 function x:SlashCommand(msg)
     if not msg or msg == '' then
-        -- https://github.com/Stanzilla/WoWUIBugs/issues/89
-        InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
-        InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+        Settings.OpenToCategory(self.optionsFrame.name)
         return
     end
 
