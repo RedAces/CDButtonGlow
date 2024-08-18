@@ -2,13 +2,13 @@
   "releases": [
     {
       "name": "CD Button Glow",
-      "version": "0.7",
-      "filename": "CDButtonGlow-0.7.zip",
+      "version": "0.8",
+      "filename": "CDButtonGlow-0.8.zip",
       "nolib": false,
       "metadata": [
         {
           "flavor": "mainline",
-          "interface": 100207
+          "interface": 110002
         }
       ]
     }
