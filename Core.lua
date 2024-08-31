@@ -119,19 +119,19 @@ function x:analyseButton(button, debug)
         end
 
         if spellId and spellId ~= 0 then
-            if not IsPlayerSpell(spellId)
-                    and not IsSpellKnown(spellId, true)
-                    and not IsPlayerSpell(spellId)
-                    and spellId ~= 212641 -- Bugfix Patch 10.2.7: Protection Paladin's Guardian of Ancient Kings
+            local spellName = self:GetSpellName(spellId)
+            -- Query the spell info for a spell NAME results in "nil" if the spell is not learned.
+            -- Using the Spell ID will always return the infos!
+            if C_Spell.GetSpellInfo(spellName, 'spell') == nil and C_Spell.GetSpellInfo(spellName, 'pet') == nil
             then
                 if debug then
-                    self:Print(button:GetName() .. ' has UNKNOWN spell ' .. self:GetSpellName(spellId) .. ' (#' .. spellId .. ') on it.')
+                    self:Print(button:GetName() .. ' has UNKNOWN spell ' .. spellName .. ' (#' .. spellId .. ') on it.')
                 end
                 return
             end
 
             if debug then
-                self:Print(button:GetName() .. ' has spell ' .. self:GetSpellName(spellId) .. ' (#' .. spellId .. ').')
+                self:Print(button:GetName() .. ' has spell ' .. spellName .. ' (#' .. spellId .. ').')
             end
 
             local cooldown = self:ParseSpellCooldown(spellId)
