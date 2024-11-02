@@ -109,6 +109,10 @@ function x:analyseButton(button, debug)
     end
 
     local slot = button:CalculateAction()
+    if debug then
+        self:Print(button:GetName() .. ' represents slot #' .. slot .. '.')
+    end
+
     if slot and HasAction(slot) then
         local spellId = 0
         local actionType, id, subType = GetActionInfo(slot)
