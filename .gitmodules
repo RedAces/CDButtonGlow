@@ -1,6 +1,0 @@
-[submodule "libs/LibCustomGlow"]
-	path = libs/LibCustomGlow
-	url = git@github.com:Stanzilla/LibCustomGlow.git
-[submodule "libs/Ace3"]
-	path = libs/Ace3
-	url = https://github.com/WoWUIDev/Ace3
