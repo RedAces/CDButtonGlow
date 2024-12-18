@@ -1,5 +1,4 @@
 ignore:
-  - deploy
   - .gitignore
   - .gitmodules
   - pkgmeta.yaml
