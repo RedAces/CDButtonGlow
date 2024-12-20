@@ -2,7 +2,6 @@ ignore:
   - .gitignore
   - pkgmeta.yaml
   - libs/Ace3/tests
-  - libs/Ace3/tests
 
 externals:
     libs/Ace3:
