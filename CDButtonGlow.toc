@@ -4,7 +4,6 @@
 ## Author: RedAces
 ## Version: @project-version@
 ## SavedVariables: CDButtonGlowDB
-## OptionalDeps: Ace3, LibCustomGlow-1.0
 ## X-Curse-Project-ID: 1161683
 
 include.xml
