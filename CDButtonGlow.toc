@@ -2,8 +2,26 @@
 ## Title: CD Button Glow
 ## Notes: Glows an action bar button if the spell on it is ready
 ## Author: RedAces
+## Version: @project-version@
 ## SavedVariables: CDButtonGlowDB
-## OptionalDeps: Ace3, LibCustomGlow-1.0
 ## X-Curse-Project-ID: 1161683
 
-include.xml
+#@no-lib-strip@
+LibStub\LibStub.lua
+CallbackHandler-1.0\CallbackHandler-1.0.xml
+
+AceAddon-3.0\AceAddon-3.0.xml
+AceConsole-3.0\AceConsole-3.0.xml
+AceDB-3.0\AceDB-3.0.xml
+AceDBOptions-3.0\AceDBOptions-3.0.xml
+AceTimer-3.0\AceTimer-3.0.xml
+AceConfig-3.0\AceConfig-3.0.xml
+AceEvent-3.0\AceEvent-3.0.xml
+
+AceGUI-3.0\AceGUI-3.0.xml
+
+LibCustomGlow-1.0\LibCustomGlow-1.0.xml
+#@end-no-lib-strip@
+
+Core.lua
+Options.lua
