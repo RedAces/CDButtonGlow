@@ -100,7 +100,7 @@ function x:InitOptions()
       text = AddonName,
       registerForAnyClick = true,
       notCheckable = true,
-      func = function(btn, arg1, arg2, checked, mouseButton)
+      func = function()
         Settings.OpenToCategory(self.optionsFrame.name)
       end
     })
@@ -137,23 +137,23 @@ function x:SlashCommand(msg)
     self:Print('Unknown chat command "/cdbg ' .. msg .. '"')
 end
 
-function x:GetCooldownMinimum(info)
+function x:GetCooldownMinimum()
     return self.db.profile.cooldownMinimum
 end
 
 
-function x:SetCooldownMinimum(info, value)
+function x:SetCooldownMinimum(_, value)
     self.db.profile.cooldownMinimum = value
     self:updateEverything()
 end
 
 
-function x:GetGlowType(info)
+function x:GetGlowType()
     return self.db.profile.glowType
 end
 
 
-function x:SetGlowType(info, value)
+function x:SetGlowType(_, value)
     self:HideAllActiveGlows(false)
 
     self.db.profile.glowType = value
@@ -164,7 +164,7 @@ function x:SetGlowType(info, value)
 end
 
 
-function x:IsSpellIdExcluded(info, spellId)
+function x:IsSpellIdExcluded(_, spellId)
     if not self.db.profile.excludedSpellIds[self.playerClass] or not self.db.profile.excludedSpellIds[self.playerClass][self.playerSpecId] then
         return false
     end
@@ -173,7 +173,7 @@ function x:IsSpellIdExcluded(info, spellId)
 end
 
 
-function x:SetSpellIdExcluded(info, spellId, isExcluded)
+function x:SetSpellIdExcluded(_, spellId, isExcluded)
     if not self.db.profile.excludedSpellIds[self.playerClass] then
         self.db.profile.excludedSpellIds[self.playerClass] = {}
     end
