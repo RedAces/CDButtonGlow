@@ -5,6 +5,7 @@
 ## Version: @project-version@
 ## SavedVariables: CDButtonGlowDB
 ## X-Curse-Project-ID: 1161683
+## X-Wago-ID: Q6aEnB6W
 
 #@no-lib-strip@
 libs\LibStub\LibStub.lua
