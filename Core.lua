@@ -236,10 +236,13 @@ function x:ParseSpellCooldown(spellId)
     if numLines == 0 then
         local spellLink = C_Spell.GetSpellLink(spellId)
 
-        self:Print(
-            'Tooltip has 0 lines for spell',
-            spellLink
-        )
+        if self.debug then
+            self:Print(
+                'Tooltip has 0 lines for spell',
+                spellLink
+            )
+        end
+
         self.tooltip:Hide()
         self.tooltip = CreateFrame('GameTooltip', 'CDButtonGlowScanTooltip', UIParent, 'GameTooltipTemplate')
         self.tooltip:SetOwner(WorldFrame, 'ANCHOR_NONE')
