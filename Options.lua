@@ -45,6 +45,13 @@ function x:InitOptions()
                             get = 'GetGlowType',
                             set = 'SetGlowType',
                         },
+                        disableOutOfCombat = {
+                            type = 'toggle',
+                            name = 'Disable out of combat',
+                            desc = 'Only enable the glows while in combat?',
+                            get = 'DisableOutOfCombat',
+                            set = 'SetDisableOutOfCombat',
+                        },
                     }
                 },
                 exclusions = {
@@ -150,6 +157,19 @@ end
 
 function x:GetGlowType()
     return self.db.profile.glowType
+end
+
+
+function x:DisableOutOfCombat()
+    return self.db.profile.disableOutOfCombat
+end
+
+
+function x:SetDisableOutOfCombat(_, value)
+    self.db.profile.disableOutOfCombat = value
+    if self:DisableOutOfCombat() and not self.inCombat then
+        self:HideAllActiveGlows(true)
+    end
 end
 
 

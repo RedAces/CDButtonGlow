@@ -26,6 +26,7 @@ function x:OnInitialize()
     self.debug = false
     self.isDragonRiding = false
     self.spellCooldowns = {}
+    self.inCombat = InCombatLockdown()
 end
 
 
@@ -35,21 +36,31 @@ function x:OnEnable()
         self.tooltip:SetOwner(WorldFrame, 'ANCHOR_NONE')
     end
 
-    self:updateEverything()
+    self:UpdateEverything()
 
-    self:RegisterEvent('ACTIONBAR_HIDEGRID', 'updateEverythingDelayed')
-    self:RegisterEvent('PLAYER_TALENT_UPDATE', 'updateEverythingDelayed')
-    self:RegisterEvent('PLAYER_SPECIALIZATION_CHANGED', 'updateEverythingDelayed')
-    self:RegisterEvent('SPELLS_CHANGED', 'updateEverythingDelayed')
+    self:RegisterEvent('ACTIONBAR_HIDEGRID', 'UpdateEverythingDelayed')
+    self:RegisterEvent('PLAYER_TALENT_UPDATE', 'UpdateEverythingDelayed')
+    self:RegisterEvent('PLAYER_SPECIALIZATION_CHANGED', 'UpdateEverythingDelayed')
+    self:RegisterEvent('SPELLS_CHANGED', 'UpdateEverythingDelayed')
 
-    self:RegisterEvent('UNIT_POWER_BAR_SHOW', 'onPowerBarChange')
-    self:RegisterEvent('UNIT_POWER_BAR_HIDE', 'onPowerBarChange')
+    self:RegisterEvent('UNIT_POWER_BAR_SHOW', 'OnPowerBarChange')
+    self:RegisterEvent('UNIT_POWER_BAR_HIDE', 'OnPowerBarChange')
 
-    self:RegisterEvent('PLAYER_ENTERING_WORLD', 'onPlayerEnteringWorld')
+    self:RegisterEvent('PLAYER_ENTERING_WORLD', 'OnPlayerEnteringWorld')
+
+    self:RegisterEvent("PLAYER_REGEN_DISABLED", 'OnEnteringCombat')
+    self:RegisterEvent("PLAYER_REGEN_ENABLED", 'OnLeavingCombat')
 end
 
 
-function x:checkCooldowns()
+function x:CheckCooldowns()
+    if not self.inCombat and self:DisableOutOfCombat() then
+        if self.debug then
+            self:Print('Player is not in combat and glows are disabled ooc.')
+        end
+        return
+    end
+
     for spellId, buttons in pairs(self.buttonSpellIds) do
         if not self:IsSpellIdExcluded({}, spellId) then
             local spellCdInfo = C_Spell.GetSpellCooldown(spellId)
@@ -96,7 +107,7 @@ function x:checkCooldowns()
 end
 
 
-function x:analyseButton(button, debug)
+function x:AnalyseButton(button, debug)
     if not button then
         return
     end
@@ -169,7 +180,7 @@ function x:analyseButton(button, debug)
 end
 
 
-function x:updateEverything()
+function x:UpdateEverything()
     self.playerClassLocalized, self.playerClass = UnitClass('player')
     self.playerSpecId = GetSpecialization()
     _, self.playerSpecName = GetSpecializationInfo(self.playerSpecId)
@@ -185,17 +196,17 @@ function x:updateEverything()
 
     if _G.Bartender4 then
         for i = 1, 120 do
-            self:analyseButton(_G['BT4Button'..i], false)
+            self:AnalyseButton(_G['BT4Button'..i], false)
         end
     elseif _G.ElvUI then
         for barNum = 1, 10 do
             for buttonNum = 1, 12 do
-                self:analyseButton(_G['ElvUI_Bar' .. barNum .. 'Button' .. buttonNum], false)
+                self:AnalyseButton(_G['ElvUI_Bar' .. barNum .. 'Button' .. buttonNum], false)
             end
         end
     elseif _G.Dominos then
         for i = 1, 168 do
-            self:analyseButton(_G['DominosActionButton' .. i], false)
+            self:AnalyseButton(_G['DominosActionButton' .. i], false)
         end
     else
         local actionBars = {
@@ -210,21 +221,21 @@ function x:updateEverything()
         }
         for _, barName in pairs(actionBars) do
             for i = 1, 12 do
-                self:analyseButton(_G[barName .. 'Button' .. i], false)
+                self:AnalyseButton(_G[barName .. 'Button' .. i], false)
             end
         end
     end
 
     -- https://www.wowace.com/projects/ace3/pages/api/ace-timer-3-0
-    self.checkCooldownsTimer = self:ScheduleRepeatingTimer('checkCooldowns', 0.1)
+    self.checkCooldownsTimer = self:ScheduleRepeatingTimer('CheckCooldowns', 0.1)
 end
 
-function x:updateEverythingDelayed(eventName)
+function x:UpdateEverythingDelayed(eventName)
     if self.debug then
         self:Print('Updating everything in 0.25 sec because of', eventName, '...')
     end
 
-    self:ScheduleTimer('updateEverything', 0.25)
+    self:ScheduleTimer('UpdateEverything', 0.25)
 end
 
 
@@ -367,7 +378,7 @@ function x:HideAllActiveGlows(removeFromActiveGlows)
 end
 
 
-function x:onPowerBarChange(eventName)
+function x:OnPowerBarChange(eventName)
     local isDragonRiding = UnitPowerBarID('player') == 631
 
     if self.isDragonRiding ~= isDragonRiding then
@@ -381,16 +392,27 @@ function x:onPowerBarChange(eventName)
             end
         end
 
-        self:updateEverythingDelayed(eventName)
+        self:UpdateEverythingDelayed(eventName)
     end
 end
 
 
-function x:onPlayerEnteringWorld()
+function x:OnPlayerEnteringWorld()
     self.isDragonRiding = UnitPowerBarID('player') == 631
 end
 
 
 function x:GetSpellName(spellId)
     return C_Spell.GetSpellName(spellId)
+end
+
+function x:OnEnteringCombat()
+    self.inCombat = true
+end
+
+function x:OnLeavingCombat()
+    self.inCombat = false
+    if self:DisableOutOfCombat() then
+        self:HideAllActiveGlows(true)
+    end
 end
