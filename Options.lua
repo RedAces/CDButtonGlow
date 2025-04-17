@@ -121,7 +121,7 @@ function x:SlashCommand(msg)
     end
 
     if msg == 'update' then
-        self:updateEverything()
+        self:UpdateEverything()
         return
     end
 
@@ -151,7 +151,7 @@ end
 
 function x:SetCooldownMinimum(_, value)
     self.db.profile.cooldownMinimum = value
-    self:updateEverything()
+    self:UpdateEverything()
 end
 
 
@@ -208,5 +208,5 @@ function x:SetSpellIdExcluded(_, spellId, isExcluded)
         self.db.profile.excludedSpellIds[self.playerClass][self.playerSpecId][tostring(spellId)] = nil
     end
 
-    self:updateEverything()
+    self:UpdateEverything()
 end
